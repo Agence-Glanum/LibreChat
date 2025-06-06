@@ -323,14 +323,17 @@ const Markdown = memo(({ content = '', isLatestMessage }: TContentProps) => {
     [],
   );
 
-  const remarkPlugins: Pluggable[] = [
-    supersub,
-    remarkGfm,
-    remarkDirective,
-    artifactPlugin,
-    [remarkMath, { singleDollarTextMath: true }],
-    unicodeCitation,
-  ];
+  const remarkPlugins: Pluggable[] = useMemo(
+    () => [
+      supersub,
+      remarkGfm,
+      remarkDirective,
+      artifactPlugin,
+      unicodeCitation,
+      [remarkMath, { singleDollarTextMath: true }],
+    ],
+    [],
+  );
 
   if (isInitializing) {
     return (
