@@ -89,6 +89,11 @@ class BaseClient {
    * @returns {string}
    */
   getResponseModel() {
+    console.log("getResponseModel called with options");
+    console.dir(this.options.endpoint);
+    console.log("*********************************************");
+    console.dir(this.options.agent);
+
     if (isAgentsEndpoint(this.options.endpoint) && this.options.agent && this.options.agent.id) {
       return this.options.agent.id;
     }
@@ -560,7 +565,11 @@ class BaseClient {
       payloadSize: payload.length,
       maxContextTokens: this.maxContextTokens,
     });
-
+    console.log('payload ********');
+    console.dir(payload);
+    console.dir(tokenCountMap);
+    console.dir(promptTokens);
+    console.dir(orderedWithInstructions);
     return { payload, tokenCountMap, promptTokens, messages: orderedWithInstructions };
   }
 
@@ -686,6 +695,10 @@ class BaseClient {
       endpoint: this.options.endpoint,
       ...(this.metadata ?? {}),
     };
+    console.log('[BaseClient] rawCitations :');
+    console.dir(this.rawCitations, { depth: null, colors: true });
+    console.log('[BaseClient] Response  **********:');
+    console.dir(responseMessage, { depth: null, colors: true });
 
     if (typeof completion === 'string') {
       responseMessage.text = completion;

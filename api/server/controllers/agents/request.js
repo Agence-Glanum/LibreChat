@@ -10,6 +10,18 @@ const { disposeClient, clientRegistry, requestDataMap } = require('~/server/clea
 const { saveMessage } = require('~/models');
 
 const AgentController = async (req, res, next, initializeClient, addTitle) => {
+  // 🔍 LOGS DE TRAÇAGE PERPLEXITY AGENT CONTROLLER
+  console.log('[AGENT-CONTROLLER] Début du traitement');
+  console.log('[AGENT-CONTROLLER] req.body.endpoint:', req.body.endpoint);
+  console.log('[AGENT-CONTROLLER] req.body.model:', req.body.model);
+  console.log('[AGENT-CONTROLLER] req.body.provider:', req.body.provider);
+
+  // 🌐 ENDPOINT COMPLET DIRECT
+  if (req.body.endpoint === 'Perplexity') {
+    console.log('[ENDPOINT-DIRECT] baseURL dans req.body:', req.body.endpointOption?.baseURL);
+    console.log('[ENDPOINT-DIRECT] Endpoint complet:', (req.body.endpointOption?.baseURL || 'N/A') + '/v1/chat/completions');
+  }
+
   let {
     text,
     isRegenerate,
@@ -21,6 +33,12 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
     overrideParentMessageId = null,
     responseMessageId: editedResponseMessageId = null,
   } = req.body;
+
+  // 🔍 DEBUG MODEL DETECTION
+  console.log('[MODEL-DEBUG] endpointOption.modelOptions.model:', endpointOption?.modelOptions?.model);
+  console.log('[MODEL-DEBUG] includes sonar?', endpointOption?.modelOptions?.model?.includes('sonar'));
+  console.log('[AGENT-CONTROLLER] req.body complet:');
+  console.dir(req.body, { depth: null, colors: true });
 
   let sender;
   let abortKey;
@@ -106,8 +124,28 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
 
   try {
     /** @type {{ client: TAgentClient }} */
+    console.log('[AGENT-CONTROLLER] Avant initializeClient');
+    console.log('[AGENT-CLIENT-OPTIONS] Options du client:');
+    console.dir(endpointOption, { depth: null, colors: true });
+
+    // 🌐 ENDPOINT PERPLEXITY COMPLET
+    if (endpointOption?.modelOptions?.model?.includes('sonar')) {
+      console.log('[PERPLEXITY-URL] baseURL réel:', endpointOption?.baseURL);
+      console.log('[PERPLEXITY-URL] Endpoint probable:', (endpointOption?.baseURL || 'N/A') + '/v1/chat/completions');
+
+      // 🔧 FORCER streamUsage: true POUR RÉCUPÉRER LES SOURCES
+      if (endpointOption.modelOptions && !endpointOption.modelOptions.streamUsage) {
+        console.log('[PERPLEXITY-FIX] streamUsage: false → true');
+        endpointOption.modelOptions.streamUsage = true;
+      }
+    }
+
     const result = await initializeClient({ req, res, endpointOption });
     client = result.client;
+
+    console.log('[AGENT-CONTROLLER] Client initialisé');
+    console.log('[AGENT-CONTROLLER] client.options:');
+    console.dir(client?.options, { depth: null, colors: true });
 
     // Register client with finalization registry if available
     if (clientRegistry) {

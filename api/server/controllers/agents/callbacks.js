@@ -239,6 +239,9 @@ function createToolEndCallback({ req, res, artifactPromises }) {
     }
 
     if (output.artifact[Tools.web_search]) {
+      console.log('[WEB_SEARCH] Artifact détecté:');
+      console.dir(output.artifact[Tools.web_search]);
+
       artifactPromises.push(
         (async () => {
           const attachment = {
@@ -248,6 +251,10 @@ function createToolEndCallback({ req, res, artifactPromises }) {
             conversationId: metadata.thread_id,
             [Tools.web_search]: { ...output.artifact[Tools.web_search] },
           };
+
+          console.log('[WEB_SEARCH] Attachment créé:');
+          console.dir(attachment);
+
           if (!res.headersSent) {
             return attachment;
           }

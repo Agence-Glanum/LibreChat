@@ -279,7 +279,14 @@ const loadTools = async ({
         webSearchConfig,
       });
       const { onSearchResults, onGetHighlights } = options?.[Tools.web_search] ?? {};
+
+      console.log('[HANDLETOOLS] Web search tool setup:');
+      console.log('[HANDLETOOLS] onSearchResults:', !!onSearchResults);
+      console.log(' [HANDLETOOLS] onGetHighlights:', !!onGetHighlights);
+
       requestedTools[tool] = async () => {
+        console.log(' [HANDLETOOLS] Creating web search tool...');
+
         toolContextMap[tool] = `# \`${tool}\`:
 Current Date & Time: ${replaceSpecialVars({ text: '{{iso_datetime}}' })}
 1. **Execute immediately without preface** when using \`${tool}\`.

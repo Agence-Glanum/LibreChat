@@ -22,6 +22,9 @@ function createOnSearchResults(res) {
    * @param {GraphRunnableConfig} runnableConfig
    */
   function onSearchResults(results, runnableConfig) {
+    console.log('[SEARCH-DEBUG] onSearchResults called');
+    console.dir(results);
+
     logger.info(
       `[onSearchResults] user: ${runnableConfig.metadata.user_id} | thread_id: ${runnableConfig.metadata.thread_id} | run_id: ${runnableConfig.metadata.run_id}`,
       results,
@@ -78,10 +81,16 @@ function createOnSearchResults(res) {
    * @returns {void}
    */
   function onGetHighlights(link) {
+    console.log('[SEARCH-DEBUG] onGetHighlights called with link:', link);
+
     const source = context.sourceMap.get(link);
     if (!source) {
+      console.log('[SEARCH-DEBUG] No source found for link:', link);
       return;
     }
+
+    console.log('[SEARCH-DEBUG] Source found:');
+    console.dir(source);
     const { type, index } = source;
     const data = context.searchResultData;
     if (!data) {

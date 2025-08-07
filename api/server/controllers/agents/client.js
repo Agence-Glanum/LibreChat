@@ -584,11 +584,40 @@ class AgentClient extends BaseClient {
 
   /** @type {sendCompletion} */
   async sendCompletion(payload, opts = {}) {
+    // Debug Perplexity: Log avant chatCompletion
+    const isPerplexityRequest = this.options?.endpoint === 'Perplexity' ||
+                               this.model?.includes('sonar') ||
+                               (Array.isArray(payload) && payload.some(msg => msg.model?.includes('sonar')));
+
+    if (isPerplexityRequest) {
+      console.log('🔥 [AGENT-SENDCOMPLETION] AVANT chatCompletion:');
+      console.dir({
+        endpoint: this.options?.endpoint,
+        model: this.model,
+        payloadLength: Array.isArray(payload) ? payload.length : 'not array',
+        hasOnProgress: !!opts.onProgress,
+        contentPartsLength: this.contentParts?.length || 0
+      }, { depth: 2, colors: true });
+    }
+
     await this.chatCompletion({
       payload,
       onProgress: opts.onProgress,
       abortController: opts.abortController,
     });
+    // Debug Perplexity: Log après chatCompletion
+    if (isPerplexityRequest) {
+      console.log('🔥 [AGENT-SENDCOMPLETION] APRÈS chatCompletion - Réponse finale:');
+      console.dir({
+        contentPartsLength: this.contentParts?.length || 0,
+        contentPartsType: Array.isArray(this.contentParts) ? 'array' : typeof this.contentParts,
+        collectedUsageLength: this.collectedUsage?.length || 0
+      }, { depth: 2, colors: true });
+      if (this.contentParts && this.contentParts.length > 0) {
+        console.log('🔥 [AGENT-SENDCOMPLETION] ContentParts (réponse finale Perplexity):');
+        console.dir(this.contentParts, { depth: 4, colors: true });
+      }
+    }
     return this.contentParts;
   }
 
@@ -885,6 +914,33 @@ class AgentClient extends BaseClient {
           );
         }
 
+        // Debug Perplexity: Log avant l'appel processStream
+        const isPerplexityRequest = agent.model_parameters?.model?.includes('sonar') ||
+                                   agent.provider === 'Perplexity' ||
+                                   this.options?.endpoint === 'Perplexity';
+
+        if (isPerplexityRequest) {
+          console.log('🔥 [AGENT-PERPLEXITY] AVANT processStream - Agent et Config:');
+          console.dir({
+            agentId: agent.id,
+            agentName: agent.name,
+            model: agent.model_parameters?.model,
+            provider: agent.provider,
+            endpoint: this.options?.endpoint,
+            messagesLength: messages.length,
+            configThreadId: config.configurable?.thread_id,
+            configAgentId: config.configurable?.agent_id,
+            toolsCount: agent.tools?.length || 0,
+            recursionLimit: config.recursionLimit
+          }, { depth: 2, colors: true });
+
+          console.log('🔥 [AGENT-PERPLEXITY] Messages envoyés:');
+          console.dir(messages.map(msg => ({
+            type: msg.constructor.name,
+            content: typeof msg.content === 'string' ? msg.content.substring(0, 200) + '...' : 'complex content'
+          })), { depth: 2, colors: true });
+        }
+
         await run.processStream({ messages }, config, {
           keepContent: i !== 0,
           tokenCounter: createTokenCounter(this.getEncoding()),
@@ -894,6 +950,60 @@ class AgentClient extends BaseClient {
             [Callback.TOOL_ERROR]: logToolError,
           },
         });
+
+        // Debug Perplexity: Log après l'appel processStream
+        if (isPerplexityRequest) {
+          console.log('🔥 [AGENT-PERPLEXITY] APRÈS processStream - Résultats:');
+          console.dir({
+            runCompleted: !!run,
+            contentPartsLength: this.contentParts?.length || 0,
+            collectedUsageLength: this.collectedUsage?.length || 0,
+            runGraphContentData: run.Graph?.contentData?.length || 0
+          }, { depth: 2, colors: true });
+
+          // LOGS PROFONDS POUR TROUVER LES LIENS CACHÉS
+          console.log('🔍 [PERPLEXITY-DEEP] Analyse complète de l\'objet RUN:');
+          console.dir(run, { depth: 6, colors: true, showHidden: true });
+          
+          console.log('🔍 [PERPLEXITY-DEEP] Analyse complète de run.Graph:');
+          console.dir(run.Graph, { depth: 6, colors: true, showHidden: true });
+          
+          console.log('🔍 [PERPLEXITY-DEEP] Toutes les propriétés de run:');
+          console.log('Run keys:', Object.keys(run));
+          console.log('Run.Graph keys:', Object.keys(run.Graph || {}));
+          
+          // Chercher search_results dans tous les objets
+          const searchForResults = (obj, path = '') => {
+            if (obj && typeof obj === 'object') {
+              Object.keys(obj).forEach(key => {
+                const currentPath = path ? `${path}.${key}` : key;
+                if (key.toLowerCase().includes('search') || key.toLowerCase().includes('result')) {
+                  console.log(`🔍 [SEARCH-FOUND] ${currentPath}:`);
+                  console.dir(obj[key], { depth: 5, colors: true });
+                }
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                  searchForResults(obj[key], currentPath);
+                }
+              });
+            }
+          };
+          
+          console.log('🔍 [PERPLEXITY-DEEP] Recherche de search_results dans run:');
+          searchForResults(run, 'run');
+          
+          console.log('🔍 [PERPLEXITY-DEEP] Recherche de search_results dans this:');
+          searchForResults(this, 'this');
+
+          if (this.contentParts && this.contentParts.length > 0) {
+            console.log('🔥 [AGENT-PERPLEXITY] Content Parts (réponse brute):');
+            console.dir(this.contentParts, { depth: 6, colors: true, showHidden: true });
+          }
+
+          if (run.Graph?.contentData && run.Graph.contentData.length > 0) {
+            console.log('🔥 [AGENT-PERPLEXITY] Graph Content Data:');
+            console.dir(run.Graph.contentData, { depth: 6, colors: true, showHidden: true });
+          }
+        }
 
         config.signal = null;
       };

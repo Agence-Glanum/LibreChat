@@ -10,6 +10,7 @@ const {
   genAzureChatCompletion,
   createStreamEventHandlers,
 } = require('@librechat/api');
+
 const {
   Constants,
   ImageDetail,
@@ -54,6 +55,7 @@ class OpenAIClient extends BaseClient {
     this.azure = options.azure || false;
     this.setOptions(options);
     this.metadata = {};
+    this.rawCitations = [];
 
     /** @type {string | undefined} - The API Completions URL */
     this.completionsUrl;
@@ -64,6 +66,9 @@ class OpenAIClient extends BaseClient {
     this.isOmni;
     /** @type {SplitStreamHandler | undefined} */
     this.streamHandler;
+
+    console.log('[OPENAI-CLIENT] start');
+
   }
 
   // TODO: PluginsClient calls this 3x, unneeded
@@ -1476,7 +1481,9 @@ ${convo}
       } else if (!chatCompletion) {
         throw new Error('Chat completion failed');
       }
-
+      if (chatCompletion && Array.isArray(chatCompletion.citations)) {
+        this.rawCitations = chatCompletion.citations;
+      }
       const { choices } = chatCompletion;
       this.usage = chatCompletion.usage;
 

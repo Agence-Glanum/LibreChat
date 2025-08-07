@@ -30,6 +30,15 @@ router.use(buildEndpointOption);
 router.use(setHeaders);
 
 const controller = async (req, res, next) => {
+  // 🔍 LOGS DE TRAÇAGE PERPLEXITY AGENTS
+  console.log('[AGENTS-ENTRY] Route agents appelée');
+  console.log('[AGENTS-ENTRY] endpoint:', req.params.endpoint);
+  console.log('[AGENTS-ENTRY] body.endpoint:', req.body?.endpoint);
+  console.log('[AGENTS-ENTRY] body.model:', req.body?.model);
+  console.log('[AGENTS-ENTRY] isPerplexity:', req.body?.endpoint?.toLowerCase().includes('perplexity') || req.body?.model?.includes('sonar'));
+  console.log('[AGENTS-ENTRY] req.body complet:');
+  console.dir(req.body, { depth: null, colors: true });
+
   await AgentController(req, res, next, initializeClient, addTitle);
 };
 
