@@ -10,6 +10,49 @@ Cette documentation explique comment configurer LibreChat pour le développement
 
 ## 🔧 Configuration Initiale
 
+### 0. Installation de npm, nvm et Node.js v20.19.3 sur Debian
+
+#### Mise à jour du système
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+#### Installation de npm (gestionnaire de paquets Node.js)
+```bash
+sudo apt install -y npm
+```
+
+#### Installation de nvm (Node Version Manager)
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+```
+
+#### Rechargement du profil bash
+```bash
+source ~/.bashrc
+```
+
+#### Installation de Node.js version 20.19.3
+```bash
+nvm install v20.19.3
+```
+
+#### Activation de Node.js v20.19.3
+```bash
+nvm use v20.19.3
+```
+
+#### Définition de la version par défaut
+```bash
+nvm alias default v20.19.3
+```
+
+#### Vérification de l'installation
+```bash
+node --version
+npm --version
+```
+
 ### 1. Fichiers à créer/modifier
 
 #### A. Créer `docker-compose.dev.yml`
