@@ -1,0 +1,15 @@
+services:
+  api:
+    image: ghcr.io/danny-avila/librechat-dev:latest
+    volumes:
+      - ./api:/app/api
+      - ./client:/app/client
+      - ./packages:/app/packages
+      - ./librechat.yaml:/app/librechat.yaml
+      - ./.env:/app/.env
+      - ./uploads:/app/uploads
+      - ./logs:/app/api/logs
+      - ./images:/app/client/public/images
+    environment:
+      - NODE_ENV=development
+    command: npm run backend:dev
